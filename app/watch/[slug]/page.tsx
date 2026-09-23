@@ -4,14 +4,54 @@ import BackLink from "@/components/BackLink";
 import Thumbnail from "@/components/Thumbnail";
 import LikeButton from "@/components/LikeButton";
 import FavoriteButton from "@/components/FavoriteButton";
+import ShareButtons from "@/components/ShareButtons";
 import WatchPlayer from "@/components/WatchPlayer";
 import { createClient } from "@/lib/supabase/server";
 import { recordVideoView } from "@/lib/stats";
 import { formatFullNumber } from "@/lib/format";
 import { notFound } from "next/navigation";
-import { Share2, Link as LinkIcon, Eye } from "lucide-react";
+import { Eye } from "lucide-react";
 import { extractYouTubeId } from "@/lib/youtube";
+import { LEGAL } from "@/lib/brand";
 import type { Video } from "@/lib/types";
+import type { Metadata } from "next";
+
+// Métadonnées Open Graph / Twitter Card générées par vidéo : c'est ce qui
+// permet à WhatsApp, Facebook, etc. d'afficher le titre, la description et
+// la miniature de la vidéo quand le lien est partagé.
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  const supabase = createClient();
+  const { data: video } = await supabase
+    .from("videos")
+    .select("title, description, thumbnail_url, slug")
+    .eq("slug", params.slug)
+    .single();
+
+  if (!video) return {};
+
+  const url = `${LEGAL.siteUrl}/watch/${video.slug}`;
+  const description = video.description?.slice(0, 200) || "Regardez cette vidéo sur AGM.";
+  const images = video.thumbnail_url ? [{ url: video.thumbnail_url, width: 1280, height: 720 }] : undefined;
+
+  return {
+    title: video.title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      type: "video.other",
+      url,
+      title: video.title,
+      description,
+      images
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: video.title,
+      description,
+      images: video.thumbnail_url ? [video.thumbnail_url] : undefined
+    }
+  };
+}
 
 export default async function WatchPage({ params }: { params: { slug: string } }) {
   const supabase = createClient();
@@ -84,24 +124,23 @@ export default async function WatchPage({ params }: { params: { slug: string } }
               canSave={!!user}
             />
 
-            <div className="mt-5 flex items-start justify-between gap-5">
-              <div>
-                <h1 className="mb-2 text-2xl font-extrabold tracking-tight">{video.title}</h1>
-                <div className="flex items-center gap-1.5 text-[13.5px] text-muted">
-                  {video.show?.name && <span>{video.show.name} · </span>}
-                  {minutes && <span>{minutes} min · </span>}
-                  <Eye size={13} />
-                  <span>{formatFullNumber(views)} vues</span>
+            <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <h1 className="mb-2 break-words text-xl font-extrabold tracking-tight sm:text-2xl">{video.title}</h1>
+                <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[13.5px] text-muted">
+                  {video.show?.name && <span>{video.show.name}</span>}
+                  {video.show?.name && minutes && <span>·</span>}
+                  {minutes && <span>{minutes} min</span>}
+                  {(video.show?.name || minutes) && <span>·</span>}
+                  <span className="inline-flex items-center gap-1">
+                    <Eye size={13} />
+                    {formatFullNumber(views)} vues
+                  </span>
                 </div>
               </div>
-              <div className="flex flex-shrink-0 items-center gap-2.5">
+              <div className="flex flex-shrink-0 flex-wrap items-center gap-2.5">
                 <LikeButton videoId={video.id} initialLikes={video.likes} />
-                <button className="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-surface text-muted" title="Partager">
-                  <Share2 size={14} />
-                </button>
-                <button className="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-surface text-muted" title="Copier le lien">
-                  <LinkIcon size={14} />
-                </button>
+                <ShareButtons title={video.title} url={`${LEGAL.siteUrl}/watch/${video.slug}`} />
                 <FavoriteButton
                   videoId={video.id}
                   initialFavorited={!!favoriteRow}

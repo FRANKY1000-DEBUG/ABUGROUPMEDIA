@@ -2,6 +2,7 @@ import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import BackLink from "@/components/BackLink";
 import EpisodeRow from "@/components/EpisodeRow";
+import Thumbnail from "@/components/Thumbnail";
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { Play } from "lucide-react";
@@ -31,16 +32,20 @@ export default async function ShowDetailPage({ params }: { params: { slug: strin
           <BackLink href="/series" label="Toutes les séries" />
         </div>
         <section
-          className="relative mx-4 mt-2 flex min-h-[400px] items-end overflow-hidden rounded-[20px] md:mx-10"
+          className="relative mx-4 mt-2 overflow-hidden rounded-[20px] md:mx-10"
           style={{
             background:
               "radial-gradient(circle at 75% 25%, rgba(37,99,235,.18), transparent 45%), radial-gradient(circle at 90% 65%, rgba(225,29,42,.16), transparent 50%), linear-gradient(120deg, #f2f3f6, #e7e9ee 70%)"
           }}
         >
-          <div className="relative z-10 flex gap-5 p-8 md:p-11">
-            <div className="h-[168px] w-[120px] flex-shrink-0 rounded-xl bg-surface-2 shadow-2xl" />
-            <div>
-              <h1 className="mb-2 text-3xl font-extrabold tracking-tight md:text-4xl">{show.name}</h1>
+          <div className="relative z-10 flex flex-col gap-5 p-6 sm:flex-row sm:p-8 md:p-11">
+            <div className="relative h-[220px] w-full flex-shrink-0 overflow-hidden rounded-xl bg-surface-2 shadow-2xl sm:h-[168px] sm:w-[120px]">
+              <Thumbnail src={show.cover_url ?? show.logo_url} alt={show.name} iconSize={28} />
+            </div>
+            <div className="min-w-0">
+              <h1 className="mb-2 break-words text-2xl font-extrabold tracking-tight sm:text-3xl md:text-4xl">
+                {show.name}
+              </h1>
               {show.host && <div className="mb-2.5 text-sm text-muted">Présenté par {show.host}</div>}
               {show.description && (
                 <p className="mb-4 max-w-[520px] text-[14.5px] leading-relaxed text-muted">{show.description}</p>
