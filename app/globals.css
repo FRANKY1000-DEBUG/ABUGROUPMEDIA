@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-bg text-ink;
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+
+/* Typographie des pages légales (confidentialité, CGU, mentions légales) */
+.legal-content h2 {
+  @apply mb-3 text-lg font-bold text-ink;
+}
+.legal-content h3 {
+  @apply mb-2 mt-5 text-[15px] font-bold text-ink;
+}
+.legal-content p {
+  @apply mb-3;
+}
+.legal-content ul {
+  @apply mb-3 list-disc space-y-1.5 pl-5;
+}
+.legal-content li::marker {
+  @apply text-accent2;
+}
+.legal-content a {
+  @apply font-semibold text-accent2 underline underline-offset-2;
+}
+.legal-content strong {
+  @apply font-semibold text-ink;
+}
+.legal-content section + section {
+  @apply border-t border-line pt-8;
+}
